@@ -1,12 +1,8 @@
 {
   "name": "ca28-proxy",
   "version": "1.0.0",
-  "description": "Proxy to fetch Canada 28 results from ft28.cc",
-  "main": "api/latest.js",
   "dependencies": {
-    "puppeteer-core": "^21.5.0"
-  },
-  "scripts": {
-    "dev": "vercel dev"
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^13.0.1"
   }
 }
