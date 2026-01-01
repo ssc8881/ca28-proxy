@@ -1,23 +1,21 @@
-// 兼容 Vercel 的 Serverless Function 写法
-const chromium = require('chrome-aws-lambda');
 const puppeteer = require('puppeteer-core');
 
 module.exports = async (req, res) => {
   let browser;
   try {
-    // 启动浏览器
+    // 使用 Vercel 内置的 Chromium 路径
+    const executablePath = process.env.CHROMIUM_PATH || '/usr/bin/chromium-browser';
+    
     browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      executablePath,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true,
     });
 
     const page = await browser.newPage();
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
     await page.goto('https://www.ft28.cc/', { waitUntil: 'networkidle2', timeout: 30000 });
 
-    // 提取数据
     const data = await page.evaluate(() => {
       const tds = document.querySelectorAll('td[data-v-3ea25d3d]');
       if (tds.length >= 7) {
@@ -39,10 +37,11 @@ module.exports = async (req, res) => {
     if (data && data.issue) {
       res.status(200).json({ success: true, data });
     } else {
-      res.status(500).json({ success: false, error: 'No data found' });
+      res.status(500).json({ success: false, error: 'No valid data found' });
     }
   } catch (error) {
     if (browser) await browser.close();
+    console.error('Error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
